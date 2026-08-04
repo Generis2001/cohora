@@ -2,11 +2,35 @@
 import * as nsfwjs from 'nsfwjs';
 import { NSFW_THRESHOLD } from '@/lib/nsfw/policy';
 
+// Self-hosted model path (public/models/nsfw/). Loading the model from a
+// bundled copy avoids depending on nsfwjs's default third-party CDN, whose
+// host can fail to resolve and block every upload behind the safety scan.
+const NSFW_MODEL_URL = '/models/nsfw/';
+
 let modelPromise: Promise<nsfwjs.NSFWJS> | null = null;
+
+async function loadNsfwModel(): Promise<nsfwjs.NSFWJS> {
+  let lastError: unknown;
+  // The first load fetches the model + weights; retry once to ride out a
+  // transient network hiccup before surfacing the moderation-unavailable error.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await nsfwjs.load(NSFW_MODEL_URL);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
 
 export function getNsfwModel(): Promise<nsfwjs.NSFWJS> {
   if (!modelPromise) {
-    modelPromise = nsfwjs.load();
+    // Reset the cache on failure so a later attempt can retry the load
+    // instead of permanently reusing a rejected promise.
+    modelPromise = loadNsfwModel().catch((error) => {
+      modelPromise = null;
+      throw error;
+    });
   }
   return modelPromise;
 }
