@@ -2,10 +2,14 @@
 import * as nsfwjs from 'nsfwjs';
 import { NSFW_THRESHOLD } from '@/lib/nsfw/policy';
 
-// Self-hosted model path (public/models/nsfw/). Loading the model from a
-// bundled copy avoids depending on nsfwjs's default third-party CDN, whose
-// host can fail to resolve and block every upload behind the safety scan.
-const NSFW_MODEL_URL = '/models/nsfw/';
+// Model path: jsDelivr CDN in production (free, no bandwidth cap, serves from
+// GitHub repo), local files in dev. Loading from jsDelivr avoids Vercel static
+// bandwidth limits (402 errors) and nsfwjs's default CDN (d1zv2aa70wpiur.cloudfront.net),
+// which fails to resolve.
+const NSFW_MODEL_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://cdn.jsdelivr.net/gh/Generis2001/cohora@main/public/models/nsfw/'
+    : '/models/nsfw/';
 
 let modelPromise: Promise<nsfwjs.NSFWJS> | null = null;
 
