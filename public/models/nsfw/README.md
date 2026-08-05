@@ -6,14 +6,15 @@ CDN. That default host (`d1zv2aa70wpiur.cloudfront.net`) can fail to resolve,
 which blocks every image/video upload with
 "Cohora could not complete the required safety scan."
 
-## Files you must place here
+## Files in this folder
 
-Drop the **quantized MobileNet** nsfwjs model (the same one nsfwjs loads by
-default) into this folder:
+The **quantized MobileNet** nsfwjs model (the same one nsfwjs loads by default)
+is vendored here and committed to the repo:
 
 - `model.json`
-- every weight shard it references, e.g. `group1-shard1of1.bin`
-  (open `model.json` → `weightsManifest[].paths` to see the exact shard names)
+- `group1-shard1of1` — the single weight shard referenced by
+  `model.json` → `weightsManifest[].paths`. The filename has **no extension**:
+  it must match the manifest path exactly or TensorFlow.js will 404 on it.
 
 ### Requirements (must match what the code expects)
 
