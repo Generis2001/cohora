@@ -3,7 +3,7 @@ import { ChainGuard } from '@/components/auth/ChainGuard';
 import { CreatorGuard } from '@/components/app/CreatorGuard';
 import { AppSidebar } from '@/components/app/AppSidebar';
 import { SidebarFooter } from '@/components/app/SidebarFooter';
-import { BookMarked, Clapperboard, Compass, LayoutDashboard, Store, Users2 } from 'lucide-react';
+import { BookMarked, Clapperboard, Compass, LayoutDashboard, Settings, Store, Users2 } from 'lucide-react';
 import Link from 'next/link';
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/app/dashboard/purchases', icon: Store, label: 'Purchases' },
   { href: '/app/communities', icon: Users2, label: 'Communities' },
   { href: '/app/studio', icon: Clapperboard, label: 'Creator Studio' },
+  { href: '/app/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

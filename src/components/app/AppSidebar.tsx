@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   Store,
   Users2,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/app/dashboard/purchases', icon: Store, label: 'Purchases' },
   { href: '/app/communities', icon: Users2, label: 'Communities' },
   { href: '/app/studio', icon: Clapperboard, label: 'Creator Studio' },
+  { href: '/app/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function AppSidebar() {
