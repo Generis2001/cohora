@@ -10,7 +10,7 @@ export const privyConfig: PrivyClientConfig = {
   embeddedWallets: {
     createOnLogin: 'users-without-wallets',
   },
-  loginMethods: ['email', 'wallet'],
+  loginMethods: ['email', 'wallet', 'discord'],
   defaultChain: arcTestnet,
   supportedChains: [arcTestnet],
 };

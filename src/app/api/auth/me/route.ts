@@ -42,10 +42,22 @@ export async function POST(req: NextRequest) {
 
     const checksummed = checksumAddress(walletAddress);
 
+    // Extract Discord username from Privy linked accounts
+    const discordAccount = privyUser.linkedAccounts.find(
+      (a: { type: string }) => a.type === 'discord_oauth',
+    ) as { type: string; username?: string } | undefined;
+
     const user = await prisma.user.upsert({
       where: { privyId },
-      create: { privyId, walletAddress: checksummed },
-      update: { walletAddress: checksummed },
+      create: {
+        privyId,
+        walletAddress: checksummed,
+        discordUsername: discordAccount?.username,
+      },
+      update: {
+        walletAddress: checksummed,
+        discordUsername: discordAccount?.username || null,
+      },
       select: {
         id: true,
         privyId: true,
@@ -53,6 +65,7 @@ export async function POST(req: NextRequest) {
         email: true,
         username: true,
         avatarUrl: true,
+        discordUsername: true,
         creator: { select: { id: true, handle: true, displayName: true, bio: true, bannerUrl: true, isVerified: true } },
       },
     });
@@ -80,10 +93,22 @@ export async function GET(req: NextRequest) {
 
     const checksummed = checksumAddress(walletAddress);
 
+    // Extract Discord username from Privy linked accounts
+    const discordAccount = privyUser.linkedAccounts.find(
+      (a: { type: string }) => a.type === 'discord_oauth',
+    ) as { type: string; username?: string } | undefined;
+
     const user = await prisma.user.upsert({
       where: { privyId },
-      create: { privyId, walletAddress: checksummed },
-      update: { walletAddress: checksummed },
+      create: {
+        privyId,
+        walletAddress: checksummed,
+        discordUsername: discordAccount?.username,
+      },
+      update: {
+        walletAddress: checksummed,
+        discordUsername: discordAccount?.username || null,
+      },
       select: {
         id: true,
         privyId: true,
@@ -91,6 +116,7 @@ export async function GET(req: NextRequest) {
         email: true,
         username: true,
         avatarUrl: true,
+        discordUsername: true,
         creator: { select: { id: true, handle: true, displayName: true, bio: true, bannerUrl: true, isVerified: true } },
       },
     });
