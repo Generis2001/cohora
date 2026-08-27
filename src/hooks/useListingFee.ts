@@ -4,11 +4,13 @@ import { useState, useCallback, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ERC20_ABI, USDC_ADDRESS, PLATFORM_WALLET, LISTING_FEE_UNITS } from '@/lib/wagmi/contracts';
 import { arcTestnet } from '@/lib/wagmi/config';
+import { useArcChain } from '@/hooks/useArcChain';
 
 type FeeStep = 'idle' | 'waiting_wallet' | 'confirming' | 'done' | 'error';
 
 export function useListingFee() {
   const { writeContractAsync } = useWriteContract();
+  const { ensureArcChain } = useArcChain();
   const [step, setStep] = useState<FeeStep>('idle');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
@@ -33,6 +35,12 @@ export function useListingFee() {
     setStep('waiting_wallet');
     setError(null);
     try {
+      // Ensure the wallet is on Arc before sending — wagmi/viem won't auto-switch
+      // and would otherwise throw ChainMismatchError against the wallet's live chain.
+      const onArc = await ensureArcChain();
+      if (!onArc) {
+        throw new Error('Please switch your wallet to Arc Testnet to pay the listing fee.');
+      }
       const hash = await writeContractAsync({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
@@ -49,7 +57,7 @@ export function useListingFee() {
       setStep('error');
       throw err;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, ensureArcChain]);
 
   const reset = useCallback(() => {
     setStep('idle');

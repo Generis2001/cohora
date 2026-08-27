@@ -11,13 +11,15 @@ import {
   PAYMENT_ROUTER_ADDRESS,
 } from '@/lib/wagmi/contracts';
 import { arcTestnet } from '@/lib/wagmi/config';
+import { useArcChain } from '@/hooks/useArcChain';
 import type { PaymentIntent } from '@/types/payment';
 
-type PaymentStep = 'idle' | 'fetching_intent' | 'approving' | 'paying' | 'confirming' | 'done' | 'error';
+type PaymentStep = 'idle' | 'switching_chain' | 'fetching_intent' | 'approving' | 'paying' | 'confirming' | 'done' | 'error';
 
 export function usePayment() {
   const { getAccessToken } = usePrivy();
   const { writeContractAsync } = useWriteContract();
+  const { ensureArcChain } = useArcChain();
   const [step, setStep] = useState<PaymentStep>('idle');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
@@ -34,9 +36,21 @@ export function usePayment() {
       type: PaymentIntent['type'];
     }) => {
       setError(null);
-      setStep('fetching_intent');
+      setStep('switching_chain');
 
       try {
+        // 0. Ensure the wallet is actually on Arc BEFORE doing anything else.
+        //    wagmi/viem do not auto-switch: passing `chainId` to writeContract
+        //    only asserts against the wallet's live chain and throws
+        //    ChainMismatchError on a mismatch. Switching (and adding the network
+        //    if the wallet doesn't know it) up front also avoids creating a
+        //    server-side payment intent we couldn't fulfil.
+        const onArc = await ensureArcChain();
+        if (!onArc) {
+          throw new Error('Please switch your wallet to Arc Testnet to complete this payment.');
+        }
+
+        setStep('fetching_intent');
         const token = await getAccessToken();
 
         // 1. Get payment intent from server
@@ -107,7 +121,7 @@ export function usePayment() {
         throw err;
       }
     },
-    [getAccessToken, writeContractAsync],
+    [getAccessToken, writeContractAsync, ensureArcChain],
   );
 
   const reset = useCallback(() => {

@@ -33,6 +33,7 @@ interface PayModalProps {
 
 const STEP_LABELS: Record<string, string> = {
   idle: 'Review & confirm',
+  switching_chain: 'Switch to Arc Testnet in wallet...',
   fetching_intent: 'Preparing payment...',
   approving: 'Approve USDC spend in wallet...',
   paying: 'Confirm payment in wallet...',
@@ -52,7 +53,7 @@ export function PayModal({
 }: PayModalProps) {
   const { pay, step, error, txHash, reset } = usePayment();
 
-  const isLoading = ['fetching_intent', 'approving', 'paying', 'confirming'].includes(step);
+  const isLoading = ['switching_chain', 'fetching_intent', 'approving', 'paying', 'confirming'].includes(step);
 
   async function handleConfirm() {
     const result = await pay(payParams);
