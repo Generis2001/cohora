@@ -205,7 +205,7 @@ export default function StudioStorePage() {
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-3 space-y-3">
               <div className="flex items-start gap-2 text-xs text-muted-foreground">
                 <Wallet className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span>Listing a product requires a <strong className="text-foreground">2 USDC fee</strong> paid from your wallet before saving.</span>
+                <span>Listing a product requires a <strong className="text-foreground">0.10 USDC fee</strong> paid from your wallet before saving.</span>
               </div>
               {feeError && (
                 <p className="text-xs text-destructive rounded bg-destructive/[0.10] px-2 py-1.5">
@@ -215,13 +215,13 @@ export default function StudioStorePage() {
               )}
               <Button variant="cohora" size="sm" onClick={handlePayFee} disabled={feeInProgress}>
                 {feeInProgress && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                {feeStep === 'waiting_wallet' ? 'Confirm in wallet...' : feeStep === 'confirming' ? 'Confirming...' : 'Pay 2 USDC Listing Fee'}
+                {feeStep === 'waiting_wallet' ? 'Confirm in wallet...' : feeStep === 'confirming' ? 'Confirming...' : 'Pay 0.10 USDC Listing Fee'}
               </Button>
             </div>
           ) : (
             <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 flex items-center gap-2 text-xs text-green-400">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-              2 USDC listing fee confirmed.
+              0.10 USDC listing fee confirmed.
             </div>
           )}
 

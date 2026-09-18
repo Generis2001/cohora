@@ -270,7 +270,7 @@ export default function NewContentPage() {
         <div className="rounded-lg border border-cohora-600/30 bg-cohora-600/5 px-4 py-3 space-y-3">
           <div className="flex items-start gap-3 text-sm text-muted-foreground">
             <Wallet className="h-4 w-4 mt-0.5 shrink-0 text-cohora-400" />
-            <span>Publishing requires a <strong className="text-foreground">2 USDC listing fee</strong> paid from your wallet.</span>
+            <span>Publishing requires a <strong className="text-foreground">0.10 USDC listing fee</strong> paid from your wallet.</span>
           </div>
           {feeError && (
             <p className="text-sm text-destructive rounded-md bg-destructive/[0.10] px-3 py-2">
@@ -280,13 +280,13 @@ export default function NewContentPage() {
           )}
           <Button variant="cohora" size="sm" onClick={handlePayFee} disabled={feeInProgress}>
             {feeInProgress && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {feeStep === 'waiting_wallet' ? 'Confirm in wallet...' : feeStep === 'confirming' ? 'Confirming on-chain...' : 'Pay 2 USDC Listing Fee'}
+            {feeStep === 'waiting_wallet' ? 'Confirm in wallet...' : feeStep === 'confirming' ? 'Confirming on-chain...' : 'Pay 0.10 USDC Listing Fee'}
           </Button>
         </div>
       ) : (
         <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 flex items-center gap-3 text-sm text-green-400">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
-          2 USDC listing fee confirmed. Fill in your content details and publish.
+          0.10 USDC listing fee confirmed. Fill in your content details and publish.
         </div>
       )}
 

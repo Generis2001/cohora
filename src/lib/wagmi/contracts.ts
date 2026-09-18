@@ -5,7 +5,7 @@ export const PAYMENT_ROUTER_ADDRESS = (process.env.NEXT_PUBLIC_PAYMENT_ROUTER_AD
 export const TREASURY_VAULT_ADDRESS = (process.env.NEXT_PUBLIC_TREASURY_VAULT_ADDRESS ?? '0x0') as Address;
 export const SUBSCRIPTION_MANAGER_ADDRESS = (process.env.NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS ?? '0x0') as Address;
 export const PLATFORM_WALLET = (process.env.NEXT_PUBLIC_PLATFORM_WALLET ?? '0x0986Bfd653985c9Fa60a464784264444B542BfD7') as Address;
-export const LISTING_FEE_UNITS = 2_000_000n; // 2 USDC (6 decimals)
+export const LISTING_FEE_UNITS = 100_000n; // 0.10 USDC (10 cents, 6 decimals)
 
 export const ERC20_ABI = [
   {
