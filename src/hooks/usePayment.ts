@@ -12,6 +12,7 @@ import {
 } from '@/lib/wagmi/contracts';
 import { arcTestnet } from '@/lib/wagmi/config';
 import { useArcChain } from '@/hooks/useArcChain';
+import { triggerBalanceRefresh } from '@/hooks/useUSDCBalance';
 import type { PaymentIntent } from '@/types/payment';
 
 type PaymentStep = 'idle' | 'switching_chain' | 'fetching_intent' | 'approving' | 'paying' | 'confirming' | 'done' | 'error';
@@ -102,6 +103,7 @@ export function usePayment() {
         });
 
         setStep('done');
+        triggerBalanceRefresh();
         return { txHash: hash, paymentId: intent.paymentId };
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Payment failed';

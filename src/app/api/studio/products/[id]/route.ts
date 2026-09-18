@@ -9,6 +9,9 @@ const patchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   priceUsdc: z.string().optional(),
+  fileUrl: z.string().url().optional().or(z.literal('')),
+  demoUrl: z.string().url().optional().or(z.literal('')),
+  demoType: z.enum(['VIDEO', 'AUDIO']).optional().or(z.literal('')),
   isActive: z.boolean().optional(),
 });
 
@@ -40,6 +43,9 @@ export async function PATCH(
         ...(data.priceUsdc !== undefined && {
           priceUsdc: usdcToUnits(parseFloat(data.priceUsdc)),
         }),
+        ...(data.fileUrl !== undefined && { deliveryUrl: data.fileUrl || undefined }),
+        ...(data.demoUrl !== undefined && { demoUrl: data.demoUrl || undefined }),
+        ...(data.demoType !== undefined && { demoType: data.demoType || undefined }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
     });

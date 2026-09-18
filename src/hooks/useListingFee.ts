@@ -5,6 +5,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ERC20_ABI, USDC_ADDRESS, PLATFORM_WALLET, LISTING_FEE_UNITS } from '@/lib/wagmi/contracts';
 import { arcTestnet } from '@/lib/wagmi/config';
 import { useArcChain } from '@/hooks/useArcChain';
+import { triggerBalanceRefresh } from '@/hooks/useUSDCBalance';
 
 type FeeStep = 'idle' | 'waiting_wallet' | 'confirming' | 'done' | 'error';
 
@@ -23,13 +24,14 @@ export function useListingFee() {
     if (step !== 'confirming' || !receipt) return;
     if (receipt.status === 'success') {
       setStep('done');
+      triggerBalanceRefresh();
     } else {
       setError('Transaction reverted on-chain. Check your USDC balance and try again.');
       setStep('error');
     }
   }, [step, receipt]);
 
-  const payFee = useCallback(async () => {
+  const payFee = useCallback(async (): Promise<`0x${string}`> => {
     setStep('waiting_wallet');
     setError(null);
     try {
@@ -61,5 +63,5 @@ export function useListingFee() {
     setTxHash(null);
   }, []);
 
-  return { payFee, step, error, txHash, isConfirming, reset };
+  return { payFee, step, error, txHash, isConfirming, isDone: step === 'done', reset };
 }

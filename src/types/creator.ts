@@ -28,7 +28,10 @@ export interface ProductItem {
   name: string;
   description: string | null;
   priceUsdc: string;
-  imageUrl: string | null;
+  imageUrl?: string | null;
+  fileUrl?: string | null;
+  demoUrl?: string | null;
+  demoType?: 'VIDEO' | 'AUDIO' | string | null;
   productType: string;
   totalSold: number;
   createdAt: string | Date;

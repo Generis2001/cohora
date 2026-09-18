@@ -194,6 +194,8 @@ model Product {
   priceUsdc   BigInt
   productType ProductType
   deliveryUrl String?
+  demoUrl     String?
+  demoType    String?     // VIDEO or AUDIO
   isActive    Boolean     @default(true)
   stock       Int?
   totalSold   Int         @default(0)

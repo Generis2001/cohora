@@ -67,6 +67,16 @@ export async function POST(req: NextRequest) {
       const product = await prisma.product.findUnique({ where: { id: input.productId } });
       if (!product || !product.isActive) throw new NotFoundError('Product');
       if (product.creatorId !== creator.id) throw new PaymentError('Product does not belong to creator');
+
+      const communityMemberCount = await prisma.communityMember.count({
+        where: { community: { creatorId: creator.id, isActive: true } },
+      });
+      if (communityMemberCount < 5) {
+        throw new PaymentError(
+          'This product cannot be purchased because the creator does not currently meet the active community requirement (minimum 5 members).'
+        );
+      }
+
       const existing = await prisma.purchase.findFirst({
         where: { userId: user.id, productId: product.id },
         select: { id: true },

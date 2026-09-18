@@ -18,23 +18,32 @@ export async function GET(
       return Response.json({ error: 'Creator not found' }, { status: 404 });
     }
 
-    const products = await prisma.product.findMany({
-      where: { creatorId: creator.id, isActive: true },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [products, communityMemberCount] = await Promise.all([
+      prisma.product.findMany({
+        where: { creatorId: creator.id, isActive: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.communityMember.count({
+        where: { community: { creatorId: creator.id, isActive: true } },
+      }),
+    ]);
 
-    return Response.json(
-      products.map((p) => ({
+    return Response.json({
+      communityMemberCount,
+      meetsCommunityRequirement: communityMemberCount >= 5,
+      products: products.map((p) => ({
         id: p.id,
         name: p.name,
         description: p.description,
         priceUsdc: p.priceUsdc.toString(),
         imageUrl: p.imageUrl,
+        demoUrl: p.demoUrl,
+        demoType: p.demoType,
         productType: p.productType,
         totalSold: p.totalSold,
         createdAt: p.createdAt,
       })),
-    );
+    });
   } catch (err) {
     return toApiError(err);
   }

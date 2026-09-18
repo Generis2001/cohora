@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { isValidAddress } from '@/lib/utils/address';
+import { triggerBalanceRefresh } from '@/hooks/useUSDCBalance';
 
 interface WithdrawModalProps {
   open: boolean;
@@ -66,6 +67,7 @@ export function WithdrawModal({ open, onOpenChange, maxAmount, defaultAddress }:
       }
 
       setStep('done');
+      triggerBalanceRefresh();
       queryClient.invalidateQueries({ queryKey: ['creator-balance'] });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Withdrawal failed');
