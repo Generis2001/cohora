@@ -19,7 +19,7 @@ const productFeatures = [
     ),
     title: 'Subscriptions in USDC',
     description:
-      'Fans subscribe with USDC on Arc Testnet and Cohora tracks access based on the active subscription state.',
+      'Fans subscribe with USDC on Arc and Cohora tracks access based on the active subscription state.',
   },
   {
     icon: () => (
@@ -127,7 +127,7 @@ export function FeatureGrid() {
             <ul className="mt-6 space-y-6">
               {[
                 'Creators who want paid subscriber access in USDC.',
-                'Communities that need wallet-based paid access on Arc Testnet.',
+                'Communities that need wallet-based paid access on Arc.',
                 'Fans who want one wallet flow for subscriptions, content, and products.',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm leading-6 text-white/[0.62]">

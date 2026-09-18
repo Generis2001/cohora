@@ -10,7 +10,7 @@ export function Hero({ stats }: { stats: LandingStats }) {
       <div className="mx-auto grid max-w-6xl gap-12 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] lg:grid-rows-[auto_auto] lg:items-start">
         <div className="relative z-10 max-w-3xl space-y-8">
           <p className="text-sm uppercase tracking-[0.26em] text-white/[0.54]">
-            Creator platform on Arc Testnet
+            Creator platform on Arc
           </p>
 
           <div className="space-y-6">

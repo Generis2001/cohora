@@ -1,12 +1,6 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-if (!process.env.PRIVATE_KEY) {
-  throw new Error("Missing PRIVATE_KEY");
-}
+const { HardhatUserConfig } = require("hardhat/config");
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -19,9 +13,14 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     "arc-testnet": {
-      url: process.env.ARC_RPC_URL!,
-      chainId: Number(process.env.ARC_CHAIN_ID),
-      accounts: [process.env.PRIVATE_KEY],
+      url: process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io",
+      chainId: Number(process.env.ARC_CHAIN_ID || 5042002),
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+    "arc-mainnet": {
+      url: process.env.ARC_MAINNET_RPC_URL || "https://rpc.mainnet.arc.io",
+      chainId: 5042,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
 
@@ -32,4 +31,4 @@ const config: HardhatUserConfig = {
   },
 };
 
-export default config;
+module.exports = config;

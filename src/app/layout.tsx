@@ -17,9 +17,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Cohora — Creator revenue on Arc Testnet',
+  title: 'Cohora — Creator revenue on Arc',
   description:
-    'Cohora is a wallet-native creator platform for subscriptions, gated communities, and digital products settled in USDC on Arc Testnet.',
+    'Cohora is a wallet-native creator platform for subscriptions, gated communities, and digital products settled in USDC on Arc.',
   icons: {
     icon: '/assets/cohora-logo.svg',
     shortcut: '/assets/cohora-logo.svg',

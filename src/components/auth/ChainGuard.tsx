@@ -42,7 +42,7 @@ export function ChainGuard({ children }: ChainGuardProps) {
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">Wrong network</h2>
           <p className="text-sm text-white/[0.58]">
-            Cohora runs on Arc Testnet. Switch your wallet to continue.
+            Cohora runs on Arc. Switch your wallet to continue.
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export function ChainGuard({ children }: ChainGuardProps) {
           {state === 'switching' ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Adding Arc Testnet...
+              Adding Arc...
             </>
           ) : state === 'error' ? (
             <>
@@ -64,7 +64,7 @@ export function ChainGuard({ children }: ChainGuardProps) {
               Try again
             </>
           ) : (
-            'Switch to Arc Testnet'
+            'Switch to Arc'
           )}
         </Button>
       </div>

@@ -3,21 +3,21 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { usePayment } from '@/hooks/usePayment';
 import { formatUsdc } from '@/lib/payments/usdc';
-import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import type { PaymentIntent } from '@/types/payment';
 
 interface PayModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (txHash: string) => void;
+  onSuccess?: (txHash: `0x${string}`) => void;
   title: string;
   description?: string;
   grossAmountUsdc: bigint;
@@ -33,7 +33,7 @@ interface PayModalProps {
 
 const STEP_LABELS: Record<string, string> = {
   idle: 'Review & confirm',
-  switching_chain: 'Switch to Arc Testnet in wallet...',
+  switching_chain: 'Switch to Arc in wallet...',
   fetching_intent: 'Preparing payment...',
   approving: 'Approve USDC spend in wallet...',
   paying: 'Confirm payment in wallet...',
@@ -102,7 +102,7 @@ export function PayModal({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Network</span>
-                <span>Arc Testnet</span>
+                <span>Arc</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Token</span>

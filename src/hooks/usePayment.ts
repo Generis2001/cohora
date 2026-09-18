@@ -39,21 +39,14 @@ export function usePayment() {
       setStep('switching_chain');
 
       try {
-        // 0. Ensure the wallet is actually on Arc BEFORE doing anything else.
-        //    wagmi/viem do not auto-switch: passing `chainId` to writeContract
-        //    only asserts against the wallet's live chain and throws
-        //    ChainMismatchError on a mismatch. Switching (and adding the network
-        //    if the wallet doesn't know it) up front also avoids creating a
-        //    server-side payment intent we couldn't fulfil.
         const onArc = await ensureArcChain();
         if (!onArc) {
-          throw new Error('Please switch your wallet to Arc Testnet to complete this payment.');
+          throw new Error('Please switch your wallet to Arc to complete this payment.');
         }
 
         setStep('fetching_intent');
         const token = await getAccessToken();
 
-        // 1. Get payment intent from server
         const intentRes = await fetch('/api/payments/intent', {
           method: 'POST',
           headers: {
@@ -71,7 +64,6 @@ export function usePayment() {
         const intent: PaymentIntent = await intentRes.json();
         const amount = BigInt(intent.grossAmountUsdc);
 
-        // 2. Approve USDC spend
         setStep('approving');
         await writeContractAsync({
           address: USDC_ADDRESS,
@@ -81,10 +73,8 @@ export function usePayment() {
           chainId: arcTestnet.id,
         });
 
-        // 3. Call PaymentRouter.pay
         setStep('paying');
         const typeIndex = ['SUBSCRIPTION_INITIAL', 'SUBSCRIPTION_RENEWAL', 'CONTENT_PURCHASE', 'PRODUCT_PURCHASE', 'COMMUNITY_JOIN'].indexOf(intent.type);
-        // COMMUNITY_JOIN maps to PRODUCT_PURCHASE (3) on-chain
         const onChainTypeIndex = intent.type === 'COMMUNITY_JOIN' ? 3 : typeIndex;
         const hash = await writeContractAsync({
           address: PAYMENT_ROUTER_ADDRESS,
@@ -102,7 +92,6 @@ export function usePayment() {
         setTxHash(hash);
         setStep('confirming');
 
-        // 4. Notify server
         await fetch('/api/payments/confirm', {
           method: 'POST',
           headers: {

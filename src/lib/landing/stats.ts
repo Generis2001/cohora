@@ -1,12 +1,24 @@
 import { createPublicClient, http, zeroAddress, type Address } from 'viem';
 import { prisma } from '@/lib/db/client';
-import { arcTestnet } from '@/lib/wagmi/config';
+import { arcMainnet } from '@/lib/wagmi/config';
 import { PAYMENT_ROUTER_ABI, PAYMENT_ROUTER_ADDRESS } from '@/lib/wagmi/contracts';
 import { formatUsdc } from '@/lib/payments/usdc';
-import deployment from '../../../contracts/deployments/arc-testnet.json';
+
+let deploymentAddress: Address = zeroAddress;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const mainnetDeployment = require('../../../contracts/deployments/arc-mainnet.json');
+  if (mainnetDeployment?.paymentRouter) {
+    deploymentAddress = mainnetDeployment.paymentRouter as Address;
+  }
+} catch {
+  // Fallback if deployment file is absent
+}
 
 const paymentRouterAddress =
-  (PAYMENT_ROUTER_ADDRESS.length === 42 ? PAYMENT_ROUTER_ADDRESS : deployment.paymentRouter) as Address;
+  PAYMENT_ROUTER_ADDRESS.length === 42 && PAYMENT_ROUTER_ADDRESS !== zeroAddress
+    ? PAYMENT_ROUTER_ADDRESS
+    : deploymentAddress;
 
 export interface LandingStats {
   creatorHeartbeat: string;
@@ -21,8 +33,8 @@ async function readRouterFeeLabel(): Promise<string> {
 
   try {
     const publicClient = createPublicClient({
-      chain: arcTestnet,
-      transport: http(arcTestnet.rpcUrls.default.http[0]),
+      chain: arcMainnet,
+      transport: http(arcMainnet.rpcUrls.default.http[0]),
     });
 
     const feeBps = await publicClient.readContract({

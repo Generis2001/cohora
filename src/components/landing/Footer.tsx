@@ -8,7 +8,7 @@ export function Footer() {
           <LogoWordmark size={30} />
           <p className="max-w-lg text-sm leading-6 text-white/[0.54]">
             Cohora is a creator platform for subscriptions, gated communities, premium content,
-            and digital products paid in USDC on Arc Testnet.
+            and digital products paid in USDC on Arc.
           </p>
         </div>
 

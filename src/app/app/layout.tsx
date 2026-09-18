@@ -33,7 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="flex items-center justify-between gap-4 px-4 py-4 md:px-8">
                     <div>
                       <p className="text-[0.65rem] uppercase tracking-[0.22em] text-white/[0.36]">Cohora</p>
-                      <p className="mt-1 text-sm text-white/[0.62]">Subscriptions, access, and creator management on Arc Testnet.</p>
+                      <p className="mt-1 text-sm text-white/[0.62]">Subscriptions, access, and creator management on Arc.</p>
                     </div>
                   </div>
                   {/* Mobile nav pills */}

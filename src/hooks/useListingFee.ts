@@ -19,13 +19,11 @@ export function useListingFee() {
     hash: txHash ?? undefined,
   });
 
-  // Transition confirming → done/error based on actual receipt status
   useEffect(() => {
     if (step !== 'confirming' || !receipt) return;
     if (receipt.status === 'success') {
       setStep('done');
     } else {
-      // Transaction was mined but reverted (insufficient balance, etc.)
       setError('Transaction reverted on-chain. Check your USDC balance and try again.');
       setStep('error');
     }
@@ -35,11 +33,9 @@ export function useListingFee() {
     setStep('waiting_wallet');
     setError(null);
     try {
-      // Ensure the wallet is on Arc before sending — wagmi/viem won't auto-switch
-      // and would otherwise throw ChainMismatchError against the wallet's live chain.
       const onArc = await ensureArcChain();
       if (!onArc) {
-        throw new Error('Please switch your wallet to Arc Testnet to pay the listing fee.');
+        throw new Error('Please switch your wallet to Arc to pay the listing fee.');
       }
       const hash = await writeContractAsync({
         address: USDC_ADDRESS,

@@ -124,7 +124,7 @@ export function AppSidebar() {
             isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none h-0 mt-0 overflow-hidden',
           )}
         >
-          Manage creator profiles, subscriptions, communities, and digital products on Arc Testnet.
+          Manage creator profiles, subscriptions, communities, and digital products on Arc.
         </p>
 
         {/* ── Nav items ── */}

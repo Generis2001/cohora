@@ -36,7 +36,7 @@ export default function AppHomePage() {
             </h1>
             <p className="cohora-copy max-w-xl">
               Use Cohora to follow creators, unlock paid content, join communities, or manage your
-              own profile and products on Arc Testnet.
+              own profile and products on Arc.
             </p>
           </div>
 
