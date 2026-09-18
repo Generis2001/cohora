@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, usePublicClient } from 'wagmi';
 import { type Address } from 'viem';
 import { usePrivy } from '@privy-io/react-auth';
 import {
@@ -20,12 +20,11 @@ type PaymentStep = 'idle' | 'switching_chain' | 'fetching_intent' | 'approving' 
 export function usePayment() {
   const { getAccessToken } = usePrivy();
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
   const { ensureArcChain } = useArcChain();
   const [step, setStep] = useState<PaymentStep>('idle');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
-
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: txHash ?? undefined });
 
   const pay = useCallback(
     async (params: {
@@ -65,8 +64,9 @@ export function usePayment() {
         const intent: PaymentIntent = await intentRes.json();
         const amount = BigInt(intent.grossAmountUsdc);
 
+        // Step 1: Approve USDC spend in wallet
         setStep('approving');
-        await writeContractAsync({
+        const approveHash = await writeContractAsync({
           address: USDC_ADDRESS,
           abi: ERC20_ABI,
           functionName: 'approve',
@@ -74,6 +74,11 @@ export function usePayment() {
           chainId: arcTestnet.id,
         });
 
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: approveHash });
+        }
+
+        // Step 2: Pay (subtract USDC from connected wallet)
         setStep('paying');
         const typeIndex = ['SUBSCRIPTION_INITIAL', 'SUBSCRIPTION_RENEWAL', 'CONTENT_PURCHASE', 'PRODUCT_PURCHASE', 'COMMUNITY_JOIN'].indexOf(intent.type);
         const onChainTypeIndex = intent.type === 'COMMUNITY_JOIN' ? 3 : typeIndex;
@@ -91,8 +96,17 @@ export function usePayment() {
         });
 
         setTxHash(hash);
-        setStep('confirming');
 
+        // Step 3: Wait for transaction receipt confirmation of USDC subtraction
+        setStep('confirming');
+        if (publicClient) {
+          const receipt = await publicClient.waitForTransactionReceipt({ hash });
+          if (receipt.status !== 'success') {
+            throw new Error('On-chain payment transaction reverted.');
+          }
+        }
+
+        // Step 4: Confirm in backend DB only after on-chain receipt success
         await fetch('/api/payments/confirm', {
           method: 'POST',
           headers: {
@@ -112,7 +126,7 @@ export function usePayment() {
         throw err;
       }
     },
-    [getAccessToken, writeContractAsync, ensureArcChain],
+    [getAccessToken, writeContractAsync, publicClient, ensureArcChain],
   );
 
   const reset = useCallback(() => {
@@ -121,5 +135,5 @@ export function usePayment() {
     setTxHash(null);
   }, []);
 
-  return { pay, step, error, txHash, isConfirming, reset };
+  return { pay, step, error, txHash, isConfirming: step === 'confirming', reset };
 }

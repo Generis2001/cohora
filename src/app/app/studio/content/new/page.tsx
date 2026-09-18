@@ -99,7 +99,7 @@ export default function NewContentPage() {
   }
 
   const feePaid = feeStep === 'done';
-  const feeInProgress = feeStep === 'waiting_wallet' || feeStep === 'confirming';
+  const feeInProgress = ['switching_chain', 'approving', 'paying', 'confirming'].includes(feeStep);
   const needsUpload = form.type !== 'ARTICLE';
 
   const handleTypeChange = (type: string) => {
@@ -280,7 +280,7 @@ export default function NewContentPage() {
           )}
           <Button variant="cohora" size="sm" onClick={handlePayFee} disabled={feeInProgress}>
             {feeInProgress && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {feeStep === 'waiting_wallet' ? 'Confirm in wallet...' : feeStep === 'confirming' ? 'Confirming on-chain...' : 'Pay 0.10 USDC Listing Fee'}
+            {feeStep === 'approving' ? 'Approve 0.10 USDC in wallet...' : feeStep === 'paying' ? 'Confirm 0.10 USDC deduction...' : feeStep === 'confirming' ? 'Confirming on-chain...' : 'Pay 0.10 USDC Listing Fee'}
           </Button>
         </div>
       ) : (

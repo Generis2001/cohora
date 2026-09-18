@@ -52,7 +52,7 @@ export default function StudioStorePage() {
 
   const { payFee, step: feeStep, error: feeError, reset: resetFee } = useListingFee();
   const feePaid = feeStep === 'done';
-  const feeInProgress = feeStep === 'waiting_wallet' || feeStep === 'confirming';
+  const feeInProgress = ['switching_chain', 'approving', 'paying', 'confirming'].includes(feeStep);
 
   const handleOpen = () => {
     resetFee();
@@ -292,7 +292,7 @@ export default function StudioStorePage() {
               )}
               <Button variant="cohora" size="sm" onClick={handlePayFee} disabled={feeInProgress}>
                 {feeInProgress && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                {feeStep === 'waiting_wallet' ? 'Confirm in wallet...' : feeStep === 'confirming' ? 'Confirming on-chain...' : 'Pay 0.10 USDC Listing Fee'}
+                {feeStep === 'approving' ? 'Approve 0.10 USDC in wallet...' : feeStep === 'paying' ? 'Confirm 0.10 USDC deduction...' : feeStep === 'confirming' ? 'Confirming on-chain...' : 'Pay 0.10 USDC Listing Fee'}
               </Button>
             </div>
           ) : (
