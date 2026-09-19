@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db/client';
 import { toApiError } from '@/lib/utils/errors';
 import { calculateFairFee, MIN_SUBSCRIPTION_PRICE_UNITS } from '@/lib/payments/fairFee';
 import { usdcToUnits } from '@/lib/payments/usdc';
+import { SubscriptionStatus, ModerationStatus } from '@prisma/client';
 import { z } from 'zod';
 
 const createTierSchema = z.object({
@@ -23,28 +24,46 @@ export async function GET(req: NextRequest) {
       select: { creator: { select: { id: true, totalEarned: true } } },
     });
 
+    // If user has not created a creator profile yet, return baseline 200 response
     if (!user?.creator) {
-      return Response.json({ error: 'Creator profile not found' }, { status: 404 });
+      const fairFeeEstimate = calculateFairFee({
+        activeSubscribers: 0,
+        communityMembers: 0,
+        publishedContent: 0,
+        listedProducts: 0,
+        totalEarnedUsdc: 0,
+      });
+      return Response.json({
+        tiers: [],
+        fairFeeEstimate,
+        metrics: {
+          activeSubscribers: 0,
+          communityMembers: 0,
+          publishedContent: 0,
+          listedProducts: 0,
+          totalEarnedUsdc: '0.00',
+        },
+      });
     }
 
     const creatorId = user.creator.id;
     const totalEarnedBigInt = user.creator.totalEarned ?? 0n;
 
-    // Use separate isolated queries to prevent nested relation query failures
+    // Use separate isolated queries with Prisma enums and try-catch fallbacks
     const [existingTiers, activeSubscribers, communityMembers, publishedContent, listedProducts] =
       await Promise.all([
         prisma.subscriptionTier.findMany({
           where: { creatorId },
           orderBy: { priceUsdc: 'asc' },
-        }),
+        }).catch(() => []),
         prisma.subscription.count({
-          where: { creatorId, status: 'ACTIVE' },
+          where: { creatorId, status: SubscriptionStatus.ACTIVE },
         }).catch(() => 0),
         prisma.communityMember.count({
           where: { community: { creatorId, isActive: true } },
         }).catch(() => 0),
         prisma.content.count({
-          where: { creatorId, isPublished: true, moderationStatus: 'APPROVED' },
+          where: { creatorId, isPublished: true, moderationStatus: ModerationStatus.APPROVED },
         }).catch(() => 0),
         prisma.product.count({
           where: { creatorId, isActive: true },
@@ -69,7 +88,6 @@ export async function GET(req: NextRequest) {
         tiers = [createdTier];
       } catch (e) {
         console.error('Failed to persist default tier:', e);
-        // Fallback tier object if DB creation fails
         tiers = [
           {
             id: 'default-tier-' + creatorId,

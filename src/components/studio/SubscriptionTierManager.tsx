@@ -44,7 +44,7 @@ export function SubscriptionTierManager() {
 
   const { data, isLoading, isError, refetch } = useQuery<ApiResponse>({
     queryKey: ['studio-tiers'],
-    enabled: ready && authenticated,
+    enabled: Boolean(ready && authenticated),
     queryFn: async () => {
       const token = await getAccessToken();
       const res = await fetch('/api/studio/tiers', {
@@ -87,6 +87,10 @@ export function SubscriptionTierManager() {
   }
 
   const { tiers, fairFeeEstimate } = data;
+  if (tiers.length === 0) {
+    return null;
+  }
+
   const primaryTier = tiers[0] ?? null;
 
   function startEditing(tier: TierData) {
