@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getUploadErrorMessage } from '@/lib/uploads/errors';
 import { Loader2, Camera, ImagePlus, ArrowLeft, AlertTriangle, Trash2 } from 'lucide-react';
+import { SubscriptionTierManager } from '@/components/studio/SubscriptionTierManager';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -247,6 +248,8 @@ export default function StudioProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      <SubscriptionTierManager />
 
       {/* Creator details */}
       <Card>
