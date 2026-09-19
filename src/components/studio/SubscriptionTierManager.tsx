@@ -6,14 +6,14 @@ import { usePrivy } from '@privy-io/react-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, DollarSign, TrendingUp, CheckCircle2, ShieldCheck, Edit3 } from 'lucide-react';
+import { Loader2, Sparkles, DollarSign, TrendingUp, CheckCircle2, ShieldCheck, Edit3, AlertCircle } from 'lucide-react';
 import type { FairFeeEstimate } from '@/lib/payments/fairFee';
 
 interface TierData {
   id: string;
   name: string;
   description: string | null;
-  priceUsdc: string; // BigInt serialized string
+  priceUsdc: string;
   intervalDays: number;
   perks: string[];
   isActive: boolean;
@@ -32,7 +32,7 @@ interface ApiResponse {
 }
 
 export function SubscriptionTierManager() {
-  const { getAccessToken } = usePrivy();
+  const { getAccessToken, ready, authenticated } = usePrivy();
   const queryClient = useQueryClient();
   const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState('');
@@ -42,8 +42,9 @@ export function SubscriptionTierManager() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery<ApiResponse>({
+  const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['studio-tiers'],
+    enabled: ready && authenticated,
     queryFn: async () => {
       const token = await getAccessToken();
       const res = await fetch('/api/studio/tiers', {
@@ -54,11 +55,23 @@ export function SubscriptionTierManager() {
     },
   });
 
-  if (isLoading || !data) {
+  if (!ready || isLoading) {
     return (
       <Card className="border-white/[0.10] bg-black/[0.72]">
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-cohora-400" />
+          <p className="text-xs text-muted-foreground">Loading subscription tier controls...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Card className="border-destructive/30 bg-destructive/5">
+        <CardContent className="flex items-center gap-3 p-4 text-sm text-destructive">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <span>Could not load subscription pricing details. Please refresh the page or try again.</span>
         </CardContent>
       </Card>
     );
@@ -150,7 +163,7 @@ export function SubscriptionTierManager() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Recommended Monthly Fee</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-3xl font-bold tracking-tight text-foreground">
-                  $${fairFeeEstimate.suggestedPriceUsdc}
+                  ${fairFeeEstimate.suggestedPriceUsdc}
                 </span>
                 <span className="text-sm text-muted-foreground">USDC / 30 days</span>
               </div>
@@ -172,7 +185,7 @@ export function SubscriptionTierManager() {
                 }}
               >
                 <DollarSign className="h-4 w-4" />
-                Apply Suggested Fee ($${fairFeeEstimate.suggestedPriceUsdc})
+                Apply Suggested Fee (${fairFeeEstimate.suggestedPriceUsdc})
               </Button>
             </div>
           </div>
@@ -187,7 +200,7 @@ export function SubscriptionTierManager() {
               {fairFeeEstimate.breakdown.map((item, idx) => (
                 <div key={idx} className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs">
                   <p className="text-muted-foreground truncate">{item.label}</p>
-                  <p className="font-semibold text-foreground mt-0.5">+$${item.amountUsdc} USDC</p>
+                  <p className="font-semibold text-foreground mt-0.5">+${item.amountUsdc} USDC</p>
                 </div>
               ))}
             </div>
@@ -219,7 +232,7 @@ export function SubscriptionTierManager() {
                     <p className="text-xs text-muted-foreground">{tier.description || 'Access to exclusive creator content and perks'}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xl font-bold text-foreground">$${currentDisplayPrice}</span>
+                    <span className="text-xl font-bold text-foreground">${currentDisplayPrice}</span>
                     <span className="text-xs text-muted-foreground"> USDC / 30d</span>
                   </div>
                 </div>
@@ -254,7 +267,7 @@ export function SubscriptionTierManager() {
                             onClick={applySuggestedPrice}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-cohora-600/20 hover:bg-cohora-600/30 text-cohora-300 font-medium px-2 py-1 rounded"
                           >
-                            Suggest $${fairFeeEstimate.suggestedPriceUsdc}
+                            Suggest ${fairFeeEstimate.suggestedPriceUsdc}
                           </button>
                         </div>
                       </div>

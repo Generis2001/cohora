@@ -41,6 +41,21 @@ export async function GET(req: NextRequest) {
 
     const creator = user.creator;
 
+    // If no subscription tier exists yet, create the baseline 5-cent tier automatically
+    if (creator.subscriptionTiers.length === 0) {
+      const defaultTier = await prisma.subscriptionTier.create({
+        data: {
+          creatorId: creator.id,
+          name: 'Supporter',
+          description: 'Support this creator',
+          priceUsdc: 50_000n, // $0.05 USDC baseline
+          intervalDays: 30,
+          isActive: true,
+        },
+      });
+      creator.subscriptionTiers.push(defaultTier);
+    }
+
     const activeSubscribers = creator.subscriptions.length;
     const communityMembers = creator.communities.reduce((acc, c) => acc + c._count.members, 0);
     const publishedContent = creator.content.length;
