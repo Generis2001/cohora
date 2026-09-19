@@ -6,7 +6,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, DollarSign, TrendingUp, CheckCircle2, ShieldCheck, Edit3, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, DollarSign, TrendingUp, CheckCircle2, ShieldCheck, Edit3, AlertCircle, RefreshCw } from 'lucide-react';
 import type { FairFeeEstimate } from '@/lib/payments/fairFee';
 
 interface TierData {
@@ -42,7 +42,7 @@ export function SubscriptionTierManager() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useQuery<ApiResponse>({
+  const { data, isLoading, isError, refetch } = useQuery<ApiResponse>({
     queryKey: ['studio-tiers'],
     enabled: ready && authenticated,
     queryFn: async () => {
@@ -50,7 +50,10 @@ export function SubscriptionTierManager() {
       const res = await fetch('/api/studio/tiers', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error('Failed to load subscription tiers');
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error ?? 'Failed to load subscription tiers');
+      }
       return res.json();
     },
   });
@@ -69,9 +72,15 @@ export function SubscriptionTierManager() {
   if (isError || !data) {
     return (
       <Card className="border-destructive/30 bg-destructive/5">
-        <CardContent className="flex items-center gap-3 p-4 text-sm text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span>Could not load subscription pricing details. Please refresh the page or try again.</span>
+        <CardContent className="flex items-center justify-between p-4 text-sm text-destructive">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>Could not load subscription pricing details.</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+            <RefreshCw className="h-3.5 w-3.5" />
+            Retry
+          </Button>
         </CardContent>
       </Card>
     );
