@@ -12,15 +12,19 @@ export interface FairFeeEstimate {
   suggestedPriceUsdc: string;
   suggestedPriceUnits: string;
   baselineUsdc: string;
+  maxUsdc: string;
   tractionLevel: 'starter' | 'growing' | 'established';
   breakdown: { label: string; amountUsdc: string }[];
 }
 
 export const MIN_SUBSCRIPTION_PRICE_USDC = 0.05;
+export const MAX_SUBSCRIPTION_PRICE_USDC = 5.00;
 export const MIN_SUBSCRIPTION_PRICE_UNITS = 50_000n;
+export const MAX_SUBSCRIPTION_PRICE_UNITS = 5_000_000n;
 
 export function calculateFairFee(metrics: TractionMetrics): FairFeeEstimate {
-  const BASELINE = 0.05; // 5 cents baseline
+  const BASELINE = 0.05; // 5 cents minimum
+  const MAX_LIMIT = 5.00; // $5.00 USDC maximum
   let bonus = 0;
   const breakdown: { label: string; amountUsdc: string }[] = [];
 
@@ -87,8 +91,9 @@ export function calculateFairFee(metrics: TractionMetrics): FairFeeEstimate {
   }
 
   const rawTotal = BASELINE + bonus;
-  // Round to nearest 0.05
-  const suggestedVal = Math.max(BASELINE, Math.round(rawTotal * 20) / 20);
+  // Round to nearest 0.05, bounded between $0.05 and $5.00
+  const roundedVal = Math.round(rawTotal * 20) / 20;
+  const suggestedVal = Math.min(MAX_LIMIT, Math.max(BASELINE, roundedVal));
   const suggestedPriceUsdc = suggestedVal.toFixed(2);
   const suggestedPriceUnits = (Math.round(suggestedVal * 1_000_000)).toString();
 
@@ -103,6 +108,7 @@ export function calculateFairFee(metrics: TractionMetrics): FairFeeEstimate {
     suggestedPriceUsdc,
     suggestedPriceUnits,
     baselineUsdc: '0.05',
+    maxUsdc: '5.00',
     tractionLevel,
     breakdown,
   };

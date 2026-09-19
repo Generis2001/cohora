@@ -2,7 +2,11 @@ import { NextRequest } from 'next/server';
 import { requireAuth } from '@/lib/privy/server';
 import { prisma } from '@/lib/db/client';
 import { toApiError } from '@/lib/utils/errors';
-import { calculateFairFee, MIN_SUBSCRIPTION_PRICE_UNITS } from '@/lib/payments/fairFee';
+import {
+  calculateFairFee,
+  MIN_SUBSCRIPTION_PRICE_UNITS,
+  MAX_SUBSCRIPTION_PRICE_UNITS,
+} from '@/lib/payments/fairFee';
 import { usdcToUnits } from '@/lib/payments/usdc';
 import { SubscriptionStatus, ModerationStatus } from '@prisma/client';
 import { z } from 'zod';
@@ -24,7 +28,6 @@ export async function GET(req: NextRequest) {
       select: { creator: { select: { id: true, totalEarned: true } } },
     });
 
-    // If user has not created a creator profile yet, return baseline 200 response
     if (!user?.creator) {
       const fairFeeEstimate = calculateFairFee({
         activeSubscribers: 0,
@@ -49,7 +52,6 @@ export async function GET(req: NextRequest) {
     const creatorId = user.creator.id;
     const totalEarnedBigInt = user.creator.totalEarned ?? 0n;
 
-    // Use separate isolated queries with Prisma enums and try-catch fallbacks
     const [existingTiers, activeSubscribers, communityMembers, publishedContent, listedProducts] =
       await Promise.all([
         prisma.subscriptionTier.findMany({
@@ -72,7 +74,6 @@ export async function GET(req: NextRequest) {
 
     let tiers = existingTiers;
 
-    // Ensure creator has at least 1 subscription tier (default baseline = $0.05 USDC)
     if (tiers.length === 0) {
       try {
         const createdTier = await prisma.subscriptionTier.create({
@@ -161,13 +162,19 @@ export async function POST(req: NextRequest) {
     const data = createTierSchema.parse(body);
 
     const priceNum = parseFloat(data.priceUsdc);
-    if (isNaN(priceNum) || priceNum < 0.05) {
-      return Response.json({ error: 'Subscription fee cannot be below $0.05 USDC baseline' }, { status: 400 });
+    if (isNaN(priceNum) || priceNum < 0.05 || priceNum > 5.00) {
+      return Response.json(
+        { error: 'Subscription fee must be between $0.05 USDC and $5.00 USDC' },
+        { status: 400 },
+      );
     }
 
     const priceUnits = usdcToUnits(priceNum);
-    if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS) {
-      return Response.json({ error: 'Subscription fee cannot be below $0.05 USDC baseline' }, { status: 400 });
+    if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS || priceUnits > MAX_SUBSCRIPTION_PRICE_UNITS) {
+      return Response.json(
+        { error: 'Subscription fee must be between $0.05 USDC and $5.00 USDC' },
+        { status: 400 },
+      );
     }
 
     const tier = await prisma.subscriptionTier.create({

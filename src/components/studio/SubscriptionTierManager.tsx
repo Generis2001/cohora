@@ -6,7 +6,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Sparkles, DollarSign, TrendingUp, CheckCircle2, ShieldCheck, Edit3, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Sparkles, DollarSign, TrendingUp, CheckCircle2, ShieldCheck, Edit3, AlertCircle, RefreshCw, Sliders } from 'lucide-react';
 import type { FairFeeEstimate } from '@/lib/payments/fairFee';
 
 interface TierData {
@@ -30,6 +30,8 @@ interface ApiResponse {
     totalEarnedUsdc: string;
   };
 }
+
+const PRESET_PRICES = ['0.05', '0.25', '1.00', '2.50', '5.00'];
 
 export function SubscriptionTierManager() {
   const { getAccessToken, ready, authenticated } = usePrivy();
@@ -109,8 +111,8 @@ export function SubscriptionTierManager() {
 
   async function handleSave(tierId: string) {
     const priceNum = parseFloat(priceInput);
-    if (isNaN(priceNum) || priceNum < 0.05) {
-      setError('Subscription fee cannot be below the $0.05 USDC baseline.');
+    if (isNaN(priceNum) || priceNum < 0.05 || priceNum > 5.00) {
+      setError('Subscription fee must be between $0.05 USDC (5 cents) and $5.00 USDC.');
       return;
     }
 
@@ -152,6 +154,8 @@ export function SubscriptionTierManager() {
     established: { label: 'Established Creator', color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
   };
 
+  const currentPriceNum = parseFloat(priceInput) || 0.05;
+
   return (
     <div className="space-y-6">
       {/* ── Fair Fee Estimator Widget ── */}
@@ -181,7 +185,7 @@ export function SubscriptionTierManager() {
                 <span className="text-sm text-muted-foreground">USDC / 30 days</span>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                Baseline minimum is 5¢ ($0.05 USDC). Set any custom price at or above baseline.
+                Range allowed: 5¢ ($0.05 USDC) to $5.00 USDC.
               </p>
             </div>
 
@@ -229,7 +233,7 @@ export function SubscriptionTierManager() {
             Subscription Pricing & Tier Controls
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Creators have complete freedom to set their monthly subscription fee. Minimum baseline is $0.05 USDC.
+            Creators have complete freedom to adjust their monthly subscription fee anywhere between <strong>$0.05 USDC (5 cents)</strong> and <strong>$5.00 USDC</strong>.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -251,8 +255,8 @@ export function SubscriptionTierManager() {
                 </div>
 
                 {isEditing ? (
-                  <div className="space-y-4 pt-2 border-t border-border">
-                    <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-5 pt-3 border-t border-border">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-1.5">
                         <label className="text-xs font-medium">Tier Name</label>
                         <Input
@@ -262,27 +266,76 @@ export function SubscriptionTierManager() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium">
-                          Monthly Price in USDC <span className="text-muted-foreground">(min $0.05)</span>
+                        <label className="text-xs font-medium flex justify-between">
+                          <span>Monthly Price (USDC)</span>
+                          <span className="text-muted-foreground font-mono">$0.05 - $5.00</span>
                         </label>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0.05"
-                            value={priceInput}
-                            onChange={(e) => setPriceInput(e.target.value)}
-                            placeholder="e.g. 0.25"
-                            className="pr-16 font-mono"
-                          />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.05"
+                          max="5.00"
+                          value={priceInput}
+                          onChange={(e) => setPriceInput(e.target.value)}
+                          placeholder="e.g. 0.25"
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Interactive Slider control */}
+                    <div className="space-y-2 rounded-xl border border-white/[0.08] bg-black/[0.30] p-4">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-medium text-muted-foreground flex items-center gap-1.5">
+                          <Sliders className="h-3.5 w-3.5 text-cohora-400" />
+                          Adjust Price Slider
+                        </span>
+                        <span className="font-mono text-cohora-400 font-bold text-sm">
+                          ${currentPriceNum.toFixed(2)} USDC
+                        </span>
+                      </div>
+
+                      <input
+                        type="range"
+                        min="0.05"
+                        max="5.00"
+                        step="0.01"
+                        value={currentPriceNum}
+                        onChange={(e) => setPriceInput(parseFloat(e.target.value).toFixed(2))}
+                        className="w-full accent-cohora-500 h-2 rounded-lg cursor-pointer bg-white/[0.10]"
+                      />
+
+                      <div className="flex justify-between text-[10px] text-muted-foreground font-mono pt-1">
+                        <span>$0.05 (Min)</span>
+                        <span>$1.00</span>
+                        <span>$2.50</span>
+                        <span>$5.00 (Max)</span>
+                      </div>
+
+                      {/* Quick presets */}
+                      <div className="flex flex-wrap items-center gap-2 pt-2">
+                        <span className="text-[10px] text-muted-foreground">Presets:</span>
+                        {PRESET_PRICES.map((preset) => (
                           <button
+                            key={preset}
                             type="button"
-                            onClick={applySuggestedPrice}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-cohora-600/20 hover:bg-cohora-600/30 text-cohora-300 font-medium px-2 py-1 rounded"
+                            onClick={() => setPriceInput(preset)}
+                            className={`rounded-md border px-2 py-1 text-[11px] font-mono transition-colors ${
+                              priceInput === preset
+                                ? 'border-cohora-500 bg-cohora-600/20 text-cohora-300 font-semibold'
+                                : 'border-white/[0.10] bg-white/[0.04] text-muted-foreground hover:border-cohora-500/40 hover:text-foreground'
+                            }`}
                           >
-                            Suggest ${fairFeeEstimate.suggestedPriceUsdc}
+                            ${preset}
                           </button>
-                        </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={applySuggestedPrice}
+                          className="rounded-md border border-cohora-600/40 bg-cohora-950/40 px-2 py-1 text-[11px] font-mono text-cohora-300 hover:bg-cohora-600/20"
+                        >
+                          Suggest ${fairFeeEstimate.suggestedPriceUsdc}
+                        </button>
                       </div>
                     </div>
 
@@ -331,7 +384,7 @@ export function SubscriptionTierManager() {
                       onClick={() => startEditing(tier)}
                     >
                       <Edit3 className="h-3.5 w-3.5" />
-                      Edit Price & Tier Details
+                      Adjust Price ($0.05 - $5.00)
                     </Button>
                   </div>
                 )}

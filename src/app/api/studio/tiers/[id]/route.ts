@@ -2,7 +2,10 @@ import { NextRequest } from 'next/server';
 import { requireAuth } from '@/lib/privy/server';
 import { prisma } from '@/lib/db/client';
 import { toApiError } from '@/lib/utils/errors';
-import { MIN_SUBSCRIPTION_PRICE_UNITS } from '@/lib/payments/fairFee';
+import {
+  MIN_SUBSCRIPTION_PRICE_UNITS,
+  MAX_SUBSCRIPTION_PRICE_UNITS,
+} from '@/lib/payments/fairFee';
 import { usdcToUnits } from '@/lib/payments/usdc';
 import { z } from 'zod';
 
@@ -39,12 +42,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     let priceUnits = tier.priceUsdc;
     if (data.priceUsdc !== undefined) {
       const priceNum = parseFloat(data.priceUsdc);
-      if (isNaN(priceNum) || priceNum < 0.05) {
-        return Response.json({ error: 'Subscription fee cannot be below $0.05 USDC baseline' }, { status: 400 });
+      if (isNaN(priceNum) || priceNum < 0.05 || priceNum > 5.00) {
+        return Response.json(
+          { error: 'Subscription fee must be between $0.05 USDC and $5.00 USDC' },
+          { status: 400 },
+        );
       }
       priceUnits = usdcToUnits(priceNum);
-      if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS) {
-        return Response.json({ error: 'Subscription fee cannot be below $0.05 USDC baseline' }, { status: 400 });
+      if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS || priceUnits > MAX_SUBSCRIPTION_PRICE_UNITS) {
+        return Response.json(
+          { error: 'Subscription fee must be between $0.05 USDC and $5.00 USDC' },
+          { status: 400 },
+        );
       }
     }
 
