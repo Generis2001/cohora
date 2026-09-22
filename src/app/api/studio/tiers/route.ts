@@ -4,8 +4,9 @@ import { prisma } from '@/lib/db/client';
 import { toApiError } from '@/lib/utils/errors';
 import {
   calculateFairFee,
+  computeMaxAllowedPrice,
   MIN_SUBSCRIPTION_PRICE_UNITS,
-  MAX_SUBSCRIPTION_PRICE_UNITS,
+  MIN_SUBSCRIPTION_PRICE_USDC,
 } from '@/lib/payments/fairFee';
 import { usdcToUnits } from '@/lib/payments/usdc';
 import { SubscriptionStatus, ModerationStatus } from '@prisma/client';
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
             creatorId,
             name: 'Supporter',
             description: 'Support this creator',
-            priceUsdc: 50_000n, // $0.05 USDC baseline
+            priceUsdc: 250_000n, // \.25 USDC default
             intervalDays: 30,
             isActive: true,
           },
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
             creatorId,
             name: 'Supporter',
             description: 'Support this creator',
-            priceUsdc: 50_000n,
+            priceUsdc: 250_000n,
             intervalDays: 30,
             isActive: true,
             perks: [],
@@ -158,28 +159,54 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Creator profile not found' }, { status: 404 });
     }
 
+    const creatorId = user.creator.id;
+
+    // Fetch live traction metrics to compute the allowed price ceiling
+    const [activeSubscribers, communityMembers] = await Promise.all([
+      prisma.subscription.count({
+        where: { creatorId, status: SubscriptionStatus.ACTIVE },
+      }).catch(() => 0),
+      prisma.communityMember.count({
+        where: { community: { creatorId, isActive: true } },
+      }).catch(() => 0),
+    ]);
+
+    const maxAllowed = computeMaxAllowedPrice({
+      activeSubscribers,
+      communityMembers,
+      publishedContent: 0,
+      listedProducts: 0,
+      totalEarnedUsdc: 0,
+    });
+
     const body = await req.json();
     const data = createTierSchema.parse(body);
 
     const priceNum = parseFloat(data.priceUsdc);
-    if (isNaN(priceNum) || priceNum < 0.05 || priceNum > 5.00) {
+    if (
+      isNaN(priceNum) ||
+      priceNum < MIN_SUBSCRIPTION_PRICE_USDC ||
+      priceNum > maxAllowed
+    ) {
       return Response.json(
-        { error: 'Subscription fee must be between $0.05 USDC and $5.00 USDC' },
+        {
+          error: Subscription fee must be between {MIN_SUBSCRIPTION_PRICE_USDC.toFixed(2)} USDC and {maxAllowed.toFixed(2)} USDC (your current traction maximum).,
+        },
         { status: 400 },
       );
     }
 
     const priceUnits = usdcToUnits(priceNum);
-    if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS || priceUnits > MAX_SUBSCRIPTION_PRICE_UNITS) {
+    if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS) {
       return Response.json(
-        { error: 'Subscription fee must be between $0.05 USDC and $5.00 USDC' },
+        { error: 'Subscription fee must be at least .05 USDC.' },
         { status: 400 },
       );
     }
 
     const tier = await prisma.subscriptionTier.create({
       data: {
-        creatorId: user.creator.id,
+        creatorId,
         name: data.name.trim(),
         description: data.description?.trim() || null,
         priceUsdc: priceUnits,
