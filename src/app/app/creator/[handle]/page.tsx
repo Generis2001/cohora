@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db/client';
 import { SubscriptionTiers } from '@/components/creator/SubscriptionTiers';
 import { PremiumContentSection } from '@/components/creator/PremiumContentSection';
+import { SubscriptionGate } from '@/components/creator/SubscriptionGate';
 import { CreatorContentSection, CreatorProductSection } from '@/components/creator/CreatorItemSections';
 import { BadgeCheck, TrendingUp } from 'lucide-react';
 import { formatUsdc } from '@/lib/payments/usdc';
@@ -135,16 +136,20 @@ export default async function CreatorProfilePage({ params }: PageProps) {
         )}
       </div>
 
-      {/* Subscription tiers */}
+      {/* Subscription tiers — always visible so visitors can subscribe */}
       <SubscriptionTiers creator={creator} />
 
-      {/* Content sections (purchasable + free) — owner sees ⋮ edit/delete menu */}
-      <CreatorContentSection
-        creatorId={creator.id}
-        creatorHandle={creator.handle}
-        purchasableContent={purchasableContent}
-        freeContent={freeContent}
-      />
+      {/* Content sections (purchasable + free) — requires an active subscription.
+          The SubscriptionGate shows a paywall with a subscribe CTA for non-subscribers.
+          The creator/owner always sees their content via the gate's ACTIVE-status check. */}
+      <SubscriptionGate creatorId={creator.id} tiers={creator.subscriptionTiers}>
+        <CreatorContentSection
+          creatorId={creator.id}
+          creatorHandle={creator.handle}
+          purchasableContent={purchasableContent}
+          freeContent={freeContent}
+        />
+      </SubscriptionGate>
 
       {premiumContent.length > 0 && (
         <PremiumContentSection
