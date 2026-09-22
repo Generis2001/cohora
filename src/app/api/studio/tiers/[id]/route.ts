@@ -72,7 +72,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       ) {
         return Response.json(
           {
-            error: Subscription fee must be between {MIN_SUBSCRIPTION_PRICE_USDC.toFixed(2)} USDC and {maxAllowed.toFixed(2)} USDC (your current traction maximum). Grow your subscriber base and community to unlock higher price limits.,
+            error: `Subscription fee must be between $${MIN_SUBSCRIPTION_PRICE_USDC.toFixed(2)} USDC and $${maxAllowed.toFixed(2)} USDC (your current traction maximum). Grow your subscriber base and community to unlock higher price limits.`,
           },
           { status: 400 },
         );
@@ -81,7 +81,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       priceUnits = usdcToUnits(priceNum);
       if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS) {
         return Response.json(
-          { error: 'Subscription fee must be at least .05 USDC.' },
+          { error: 'Subscription fee must be at least $0.05 USDC.' },
           { status: 400 },
         );
       }

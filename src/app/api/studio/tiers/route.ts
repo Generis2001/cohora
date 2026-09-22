@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
             creatorId,
             name: 'Supporter',
             description: 'Support this creator',
-            priceUsdc: 250_000n, // \.25 USDC default
+            priceUsdc: 250_000n, // $0.25 USDC default
             intervalDays: 30,
             isActive: true,
           },
@@ -190,7 +190,7 @@ export async function POST(req: NextRequest) {
     ) {
       return Response.json(
         {
-          error: Subscription fee must be between {MIN_SUBSCRIPTION_PRICE_USDC.toFixed(2)} USDC and {maxAllowed.toFixed(2)} USDC (your current traction maximum).,
+          error: `Subscription fee must be between $${MIN_SUBSCRIPTION_PRICE_USDC.toFixed(2)} USDC and $${maxAllowed.toFixed(2)} USDC (your current traction maximum).`,
         },
         { status: 400 },
       );
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     const priceUnits = usdcToUnits(priceNum);
     if (priceUnits < MIN_SUBSCRIPTION_PRICE_UNITS) {
       return Response.json(
-        { error: 'Subscription fee must be at least .05 USDC.' },
+        { error: 'Subscription fee must be at least $0.05 USDC.' },
         { status: 400 },
       );
     }
